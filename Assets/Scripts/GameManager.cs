@@ -1,23 +1,37 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
-public class SceneManager : MonoBehaviour
+public class GameManager : MonoBehaviour
 {
-    public static SceneManager Instance;
+    public static GameManager Instance;
 
-    public Player Player;
-    public List<Enemie> Enemies;
-    public GameObject Lose;
-    public GameObject Win;
-
-    private int currWave = 0;
+    [SerializeField] private Player _player;
+    [SerializeField] private List<Enemie> _enemies = new List<Enemie>();
+    [SerializeField] private GameObject _lose;
+    [SerializeField] private GameObject _win;
+    
     [SerializeField] private LevelConfig Config;
+    
+    private int currWave = 0;
+
+
+    public Player Player => _player;
+    public List<Enemie> Enemies => _enemies;
+    public GameObject Lose => _lose;
+    public GameObject Win => _win;
 
     private void Awake()
     {
-        Instance = this;
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+        
     }
 
     private void Start()
@@ -27,13 +41,13 @@ public class SceneManager : MonoBehaviour
 
     public void AddEnemie(Enemie enemie)
     {
-        Enemies.Add(enemie);
+        _enemies.Add(enemie);
     }
 
     public void RemoveEnemie(Enemie enemie)
     {
-        Enemies.Remove(enemie);
-        if(Enemies.Count == 0)
+        _enemies.Remove(enemie);
+        if(_enemies.Count == 0)
         {
             SpawnWave();
         }
@@ -41,14 +55,14 @@ public class SceneManager : MonoBehaviour
 
     public void GameOver()
     {
-        Lose.SetActive(true);
+        _lose.SetActive(true);
     }
 
     private void SpawnWave()
     {
         if (currWave >= Config.Waves.Length)
         {
-            Win.SetActive(true);
+            _win.SetActive(true);
             return;
         }
 
@@ -65,6 +79,7 @@ public class SceneManager : MonoBehaviour
     public void Reset()
     {
         UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+        _enemies.Clear();
     }
     
 

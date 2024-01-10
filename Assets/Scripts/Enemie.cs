@@ -5,24 +5,25 @@ using UnityEngine.AI;
 
 public class Enemie : MonoBehaviour
 {
-    public float Hp;
-    public float Damage;
-    public float AtackSpeed;
-    public float AttackRange = 2;
+    [SerializeField] private float _healthPoint;
+    [SerializeField] private float _damage;
+    [SerializeField] private float _atackSpeed;
+    [SerializeField] private float _attackRange = 2;
 
 
     public Animator AnimatorController;
     public NavMeshAgent Agent;
+    
+
 
     private float lastAttackTime = 0;
     private bool isDead = false;
-
+    public float HealthPoint => _healthPoint;
 
     private void Start()
     {
-        SceneManager.Instance.AddEnemie(this);
-        Agent.SetDestination(SceneManager.Instance.Player.transform.position);
-
+        GameManager.Instance.AddEnemie(this);
+        Agent.SetDestination(GameManager.Instance.Player.transform.position);
     }
 
     private void Update()
@@ -32,39 +33,44 @@ public class Enemie : MonoBehaviour
             return;
         }
 
-        if (Hp <= 0)
+        if (_healthPoint <= 0)
         {
             Die();
             Agent.isStopped = true;
             return;
         }
 
-        var distance = Vector3.Distance(transform.position, SceneManager.Instance.Player.transform.position);
+        var distance = Vector3.Distance(transform.position, GameManager.Instance.Player.transform.position);
      
-        if (distance <= AttackRange)
+        if (distance <= _attackRange)
         {
             Agent.isStopped = true;
-            if (Time.time - lastAttackTime > AtackSpeed)
+            if (Time.time - lastAttackTime > _atackSpeed)
             {
                 lastAttackTime = Time.time;
-                SceneManager.Instance.Player.Hp -= Damage;
+                GameManager.Instance.Player.TakeDamage(_damage);
                 AnimatorController.SetTrigger("Attack");
             }
         }
         else
         {
-            Agent.SetDestination(SceneManager.Instance.Player.transform.position);
+            Agent.SetDestination(GameManager.Instance.Player.transform.position);
         }
         AnimatorController.SetFloat("Speed", Agent.speed); 
         Debug.Log(Agent.speed);
 
     }
 
+    public void TakeDamage(float damage)
+    {
+        _healthPoint -=damage;
+    }
+
 
 
     private void Die()
     {
-        SceneManager.Instance.RemoveEnemie(this);
+        GameManager.Instance.RemoveEnemie(this);
         isDead = true;
         AnimatorController.SetTrigger("Die");
     }
