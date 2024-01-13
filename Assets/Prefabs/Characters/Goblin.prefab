@@ -101,9 +101,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _healthPoint: 5
   _damage: 2.41
-  _atackSpeed: 2
+  _atackCooldown: 1
   _attackRange: 2
-  AnimatorController: {fileID: 7475179364339281051}
+  _animator: {fileID: 7475179364339281051}
   Agent: {fileID: 8767279960998370427}
 --- !u!195 &8767279960998370427
 NavMeshAgent:
