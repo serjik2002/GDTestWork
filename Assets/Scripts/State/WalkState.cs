@@ -11,13 +11,14 @@ public class WalkState : IState
 
     public void Enter()
     {
-        Debug.Log("Enter Walk State");
-        _animator.SetTrigger("Walk");
+        //Debug.Log("Enter Walk State");
+        //_animator.SetTrigger("Walk");
+        _animator.SetFloat("Speed", GameManager.Instance.Player.Speed);
     }
 
     public void Exit()
     {
-        Debug.Log("Exit walk state");
+        _animator.SetFloat("Speed", 0);
     }
 
     public void Update()

@@ -4,14 +4,14 @@ public class IdleState : IState
 {
     private Animator _animator;
 
-    public IdleState(Animator animator)
+    public IdleState()
     {
-        _animator = animator;
+        _animator = GameManager.Instance.Player.AnimatorController;
     }
 
     public void Enter()
     {
-        Debug.Log("Enter Idle State");
+        //Debug.Log("Enter Idle State");
         _animator.SetTrigger("Idle");
     }
 

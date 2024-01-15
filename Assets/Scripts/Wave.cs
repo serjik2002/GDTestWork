@@ -7,5 +7,9 @@ using UnityEngine;
 [Serializable]
 public class Wave : ScriptableObject
 {
-    public GameObject[] Characters;
+    [SerializeField] private List<Enemie> _enemies;
+
+    public List<Enemie> Enemies => _enemies;
+
+
 }

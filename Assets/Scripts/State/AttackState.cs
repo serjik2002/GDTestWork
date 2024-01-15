@@ -11,7 +11,9 @@ public class AttackState : IState
 
     public void Enter()
     {
+       // Debug.Log("Enter Attack state");
         _animator.SetTrigger("Attack");
+        GameManager.Instance.Player.IsWalking = false;
         GameManager.Instance.Player.Attack();
     }
 

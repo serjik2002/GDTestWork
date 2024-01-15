@@ -7,6 +7,7 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance;
 
     [SerializeField] private Player _player;
+    [SerializeField] private WaveSpawner _waveSpawner;
     [SerializeField] private List<Enemie> _enemies = new List<Enemie>();
     [SerializeField] private GameObject _lose;
     [SerializeField] private GameObject _win;
@@ -18,6 +19,7 @@ public class GameManager : MonoBehaviour
 
     public Player Player => _player;
     public List<Enemie> Enemies => _enemies;
+    public WaveSpawner WaveSpawner => _waveSpawner;
     public GameObject Lose => _lose;
     public GameObject Win => _win;
 
@@ -32,48 +34,6 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
         }
         
-    }
-
-    private void Start()
-    {
-        SpawnWave();
-    }
-
-    public void AddEnemie(Enemie enemie)
-    {
-        _enemies.Add(enemie);
-    }
-
-    public void RemoveEnemie(Enemie enemie)
-    {
-        _enemies.Remove(enemie);
-        if(_enemies.Count == 0)
-        {
-            SpawnWave();
-        }
-    }
-
-    public void GameOver()
-    {
-        _lose.SetActive(true);
-    }
-
-    private void SpawnWave()
-    {
-        if (currWave >= Config.Waves.Length)
-        {
-            _win.SetActive(true);
-            return;
-        }
-
-        var wave = Config.Waves[currWave];
-        foreach (var character in wave.Characters)
-        {
-            Vector3 pos = new Vector3(Random.Range(-10, 10), 0, Random.Range(-10, 10));
-            Instantiate(character, pos, Quaternion.identity);
-        }
-        currWave++;
-
     }
 
     public void Reset()

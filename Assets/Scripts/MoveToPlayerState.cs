@@ -11,7 +11,7 @@ public class MoveToPlayerState : IState
     }
     public void Enter()
     {
-        Debug.Log("Enter move to player state");
+        Debug.Log("Enter Move to player state");
     }
 
     public void Exit()

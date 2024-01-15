@@ -10,15 +10,17 @@ public class Enemie : MonoBehaviour
     [SerializeField] private float _atackCooldown;
     [SerializeField] private float _attackRange = 2;
     [SerializeField] private Animator _animator;
+    [SerializeField] private NavMeshAgent _agent;
 
-    public NavMeshAgent Agent;
-    
     private StateMachine _stateMachine = new StateMachine();
 
+    private WaveSpawner _waveSpawner;
     private float _lastAttackTime = 0;
     private bool isDead = false;
-    private bool isAttacked = false;
+    private bool _isAttacked = false;
+    private bool _isWalking = true;
 
+    public NavMeshAgent Agent => _agent;
     public Animator Animator => _animator;
     public float HealthPoint => _healthPoint;
     public float Damage => _damage;
@@ -28,66 +30,67 @@ public class Enemie : MonoBehaviour
 
     private void Start()
     {
+        _waveSpawner = GameManager.Instance.WaveSpawner;
+        _agent = GetComponent<NavMeshAgent>();
         _stateMachine.Initialize(new MoveToPlayerState(Agent));
-        GameManager.Instance.AddEnemie(this);
-        Agent.SetDestination(GameManager.Instance.Player.transform.position);
     }
 
     private void Update()
     {
-        if(isDead)
-        {
-            return;
-        }
-
         if (_healthPoint <= 0)
         {
             Die();
-            Agent.isStopped = true;
             return;
         }
 
-        //var distance = Vector3.Distance(transform.position, GameManager.Instance.Player.transform.position);
+        
 
-        _stateMachine.CurrentState.Update();
-        if (!Agent.pathPending && Agent.remainingDistance < _attackRange)
+
+
+        if (GetDistanceToPlayer() < _attackRange && !_isAttacked)
         {
-            if (!isAttacked)
-            {
-                _stateMachine.ChangeState(new AttackPlayerState(this));
-                isAttacked = true;
-            }
+            _stateMachine.ChangeState(new AttackPlayerState(this));
+            _isAttacked = true;
         }
-        else
+        else if (_isAttacked)
         {
             _stateMachine.ChangeState(new MoveToPlayerState(Agent));
-            isAttacked = false;
+            _isWalking = true;
+            _isAttacked = false;
         }
-        Animator.SetFloat("Speed", Agent.speed);
+        _stateMachine.CurrentState.Update();
 
+        Animator.SetFloat("Speed", Agent.speed);
     }
 
     public void TakeDamage(float damage)
     {
-        _healthPoint -=damage;
+        _healthPoint -= damage;
     }
-
-
 
     private void Die()
     {
-        GameManager.Instance.RemoveEnemie(this);
-        isDead = true;
+        _waveSpawner.RemoveEnemyFromWave(this);
         Animator.SetTrigger("Die");
+        Destroy(gameObject);
     }
 
     public void Attack()
     {
-        if (Time.time - _lastAttackTime > _atackCooldown)
+        float distance = GetDistanceToPlayer();
+        if (distance <= _attackRange)
         {
-            _lastAttackTime = Time.time;
-            GameManager.Instance.Player.TakeDamage(_damage);
+            if (Time.time - _lastAttackTime > _atackCooldown)
+            {
+                _lastAttackTime = Time.time;
+                GameManager.Instance.Player.TakeDamage(_damage);
+            }
         }
+
     }
 
+    private float GetDistanceToPlayer()
+    {
+        return Vector3.Distance(transform.position, GameManager.Instance.Player.transform.position);
+    }
 }

@@ -18,18 +18,23 @@ public class Player : MonoBehaviour
 
     private float lastAttackTime = 0;
     private bool isDead = false;
-    private bool _isWalking = false;
-
+    private float horizontal, vertical;
     private StateMachine _stateMachine = new StateMachine();
 
-    public Animator AnimatorController;
 
     public UnityEvent OnPlayerDie;
 
+    public Animator AnimatorController;
+
+    public bool IsWalking { get; set; }
+    public float Speed => _speed;
+    public StateMachine StateMachine => _stateMachine;
+
     private void Start()
     {
+        IsWalking = false;
         OnPlayerDie.AddListener(Die);
-        _stateMachine.Initialize(new IdleState(AnimatorController));
+        _stateMachine.Initialize(new IdleState());
         _attackButton.onClick.AddListener(() =>
         {
             _stateMachine.ChangeState(new AttackState(AnimatorController));
@@ -43,49 +48,76 @@ public class Player : MonoBehaviour
             return;
         }
 
-        if (_healthPoint <= 0)
-        {
-            OnPlayerDie.Invoke();
-        }
-
-        //Move();
-
-        var horizontal = Input.GetAxis("Horizontal");
-        var vertical = Input.GetAxis("Vertical");
-
-        // ƒобавлено условие дл€ перехода в состо€ние WalkState
-        if (horizontal != 0 || vertical != 0)
-        {
-            if (!_isWalking)
-            {
-                _stateMachine.ChangeState(new WalkState(AnimatorController));
-                _isWalking = true;
-            }
-        }
-        else
-        {
-            if (_isWalking)
-            {
-                _stateMachine.ChangeState(new IdleState(AnimatorController));
-                _isWalking = false;
-            }
-        }
+        HandleDeath();
+        HandleMovement();
 
         _stateMachine.CurrentState.Update();
 
     }
 
+    private void HandleMovement()
+    {
+        horizontal = Input.GetAxis("Horizontal");
+        vertical = Input.GetAxis("Vertical");
+
+        if (horizontal != 0 || vertical != 0)
+        {
+            if (!IsWalking)
+            {
+                _stateMachine.ChangeState(new WalkState(AnimatorController));
+                IsWalking = true;
+            }
+        }
+        else if (IsWalking)
+        { 
+        
+            _stateMachine.ChangeState(new IdleState());
+            IsWalking = false;
+        }
+    }
+
+    private void HandleDeath()
+    {
+        if (_healthPoint <= 0)
+        {
+            OnPlayerDie.Invoke();
+        }
+    }
+
     public void Attack()
     {
-        var enemies = GameManager.Instance.Enemies;
-        enemies.RemoveAll(item => item == null);
-        Enemie closestEnemie = null;
+        Enemie closestEnemy = FindClosestEnemy();
+        Debug.Log(closestEnemy);
+        if (closestEnemy != null)
+        {
+            bool canAttack = CanAttack(closestEnemy);
+            Debug.Log(canAttack);
+            if (canAttack)
+            {
+                PerformAttack(closestEnemy);
+            }
+        }
+        else
+        {
+            AnimatorController.SetTrigger("Attack");
+        }
+    }
+
+    private void PerformAttack(Enemie enemy)
+    {
+        transform.rotation = Quaternion.LookRotation(enemy.transform.position - transform.position);
+
+        lastAttackTime = Time.time;
+        enemy.TakeDamage(_damage);
+        AnimatorController.SetTrigger("Attack");
+    }
+
+    private Enemie FindClosestEnemy()
+    {
+        var enemies = GameManager.Instance.WaveSpawner.SpawnedEnemies;
+        Debug.Log(enemies.Count);
+        Enemie closestEnemie = enemies[0];
         float distance = 0, closestDistance = 0;
-
-        if (enemies.Count == 0)
-            return;
-
-        closestEnemie = enemies[0];
 
         for (int i = 1; i < enemies.Count; i++)
         {
@@ -99,19 +131,20 @@ public class Player : MonoBehaviour
             }
 
         }
+        Debug.Log(closestEnemie.transform.position);
+        return closestEnemie;
+    }
 
-        if (closestDistance <= _attackRange)
+    private bool CanAttack(Enemie enemy)
+    {
+        if (Time.time - lastAttackTime > _atackCooldown)
         {
-            if (Time.time - lastAttackTime > _atackCooldown)
-            {
-                transform.transform.rotation = Quaternion.LookRotation(closestEnemie.transform.position - transform.position);
+            float distance = Vector3.Distance(transform.position, enemy.transform.position);
 
-                lastAttackTime = Time.time;
-                closestEnemie.TakeDamage(_damage);
-                AnimatorController.SetTrigger("Attack");
-            }
+            return distance <= _attackRange;
         }
 
+        return false;
     }
 
     public void TakeDamage(float damage)
@@ -123,17 +156,14 @@ public class Player : MonoBehaviour
     {
         isDead = true;
         AnimatorController.SetTrigger("Die");
-
-        GameManager.Instance.GameOver();
     }
 
     public void Move()
     {
-        float horizontal = Input.GetAxis("Horizontal");
-        float vertical = Input.GetAxis("Vertical");
+        horizontal = Input.GetAxis("Horizontal");
+        vertical = Input.GetAxis("Vertical");
 
         Vector3 direction = new Vector3(horizontal, 0, vertical);
-        Vector3 lastDirection = direction;
 
         transform.position += direction.normalized * _speed * Time.deltaTime;
 
@@ -142,12 +172,14 @@ public class Player : MonoBehaviour
         {
             Quaternion toRotation = Quaternion.LookRotation(direction, Vector3.up);
             transform.rotation = Quaternion.Slerp(transform.rotation, toRotation, _rotationSpeed * Time.deltaTime);
+
         }
     }
 
     private void OnDrawGizmos()
     {
         Handles.DrawWireDisc(transform.position, Vector3.up, _attackRange);
+
     }
 
 }

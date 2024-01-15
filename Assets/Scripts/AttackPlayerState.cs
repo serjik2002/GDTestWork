@@ -10,7 +10,7 @@ public class AttackPlayerState : IState
     }
     public void Enter()
     {
-        Debug.Log("Enter Attack state");
+        Debug.Log("Enter Attack player state");
         _enemie.Animator.SetTrigger("Attack");
     }
 
