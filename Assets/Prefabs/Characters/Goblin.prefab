@@ -102,9 +102,8 @@ MonoBehaviour:
   _healthPoint: 10
   _damage: 0
   _atackCooldown: 1
-  _attackRange: 2
+  _attackRange: 4.4
   _animator: {fileID: 7475179364339281051}
-  _waveSpawner: {fileID: 0}
   _agent: {fileID: 0}
 --- !u!195 &8767279960998370427
 NavMeshAgent:

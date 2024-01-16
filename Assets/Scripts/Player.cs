@@ -9,12 +9,14 @@ public class Player : MonoBehaviour
 {
     [SerializeField] private float _healthPoint;
     [SerializeField] private float _damage;
-    [SerializeField] private float _atackCooldown;
+    [SerializeField] private float _attackCooldown;
+    [SerializeField] private float _superAttackCooldown = 2f;
     [SerializeField] private float _attackRange = 2;
     [SerializeField] private float _speed = 3;
     [SerializeField] private float _rotationSpeed = 10;
-
     [SerializeField] private Button _attackButton;
+    [SerializeField] private Button _superAttackButton;
+
 
     private float lastAttackTime = 0;
     private bool isDead = false;
@@ -38,6 +40,10 @@ public class Player : MonoBehaviour
         _attackButton.onClick.AddListener(() =>
         {
             _stateMachine.ChangeState(new AttackState(AnimatorController));
+        });
+        _superAttackButton.onClick.AddListener(() =>
+        {
+            StartCoroutine(SuperAttackButtonHandle());
         });
     }
 
@@ -103,6 +109,11 @@ public class Player : MonoBehaviour
         }
     }
 
+    public void SuperAttack()
+    {
+
+    }
+
     private void PerformAttack(Enemie enemy)
     {
         transform.rotation = Quaternion.LookRotation(enemy.transform.position - transform.position);
@@ -137,7 +148,7 @@ public class Player : MonoBehaviour
 
     private bool CanAttack(Enemie enemy)
     {
-        if (Time.time - lastAttackTime > _atackCooldown)
+        if (Time.time - lastAttackTime > _attackCooldown)
         {
             float distance = Vector3.Distance(transform.position, enemy.transform.position);
 
@@ -182,4 +193,10 @@ public class Player : MonoBehaviour
 
     }
 
+    private IEnumerator SuperAttackButtonHandle()
+    {
+        _superAttackButton.interactable = false;
+        yield return new WaitForSeconds(_superAttackCooldown);
+        _superAttackButton.interactable = true;
+    }
 }

@@ -32,7 +32,7 @@ public class Enemie : MonoBehaviour
     {
         _waveSpawner = GameManager.Instance.WaveSpawner;
         _agent = GetComponent<NavMeshAgent>();
-        _stateMachine.Initialize(new MoveToPlayerState(Agent));
+        _stateMachine.Initialize(new MoveToPlayerState(this));
     }
 
     private void Update()
@@ -43,18 +43,18 @@ public class Enemie : MonoBehaviour
             return;
         }
 
-        
-
-
-
-        if (GetDistanceToPlayer() < _attackRange && !_isAttacked)
+        if (GetDistanceToPlayer() < _attackRange)
         {
-            _stateMachine.ChangeState(new AttackPlayerState(this));
-            _isAttacked = true;
+            if (!_isAttacked)
+            {
+                _stateMachine.ChangeState(new AttackPlayerState(this));
+                _isAttacked = true;
+                _isWalking = false;
+            }
         }
-        else if (_isAttacked)
+        else if(!_isWalking)
         {
-            _stateMachine.ChangeState(new MoveToPlayerState(Agent));
+            _stateMachine.ChangeState(new MoveToPlayerState(this));
             _isWalking = true;
             _isAttacked = false;
         }
@@ -82,6 +82,7 @@ public class Enemie : MonoBehaviour
         {
             if (Time.time - _lastAttackTime > _atackCooldown)
             {
+                _animator.SetTrigger("Attack");
                 _lastAttackTime = Time.time;
                 GameManager.Instance.Player.TakeDamage(_damage);
             }

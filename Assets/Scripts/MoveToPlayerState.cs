@@ -3,24 +3,28 @@ using UnityEngine.AI;
 
 public class MoveToPlayerState : IState
 {
-    private NavMeshAgent _agent;
+    private Enemie _enemie;
 
-    public MoveToPlayerState(NavMeshAgent agent)
+    public MoveToPlayerState(Enemie enemie)
     {
-        this._agent = agent;
+        this._enemie = enemie;
     }
     public void Enter()
     {
         Debug.Log("Enter Move to player state");
+        _enemie.Agent.isStopped = false;
+        _enemie.Animator.SetTrigger("Walk");
     }
 
     public void Exit()
     {
+        _enemie.Agent.isStopped = true;
+        _enemie.Animator.ResetTrigger("Walk");
         return;
     }
 
     public void Update()
     {
-        _agent.SetDestination(GameManager.Instance.Player.transform.position);
+        _enemie.Agent.SetDestination(GameManager.Instance.Player.transform.position);
     }
 }
