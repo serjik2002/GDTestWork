@@ -13,6 +13,7 @@ public class WaveSpawner : MonoBehaviour
 
     public List<Enemie> Enemies => _enemies;
     public List<Enemie> SpawnedEnemies => _spawnedEnemies;
+    public int CurrentWave => _currentWave;
 
     public UnityEvent OnWaveCompleted;
 

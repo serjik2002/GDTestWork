@@ -14,8 +14,6 @@ public class GameManager : MonoBehaviour
     
     [SerializeField] private LevelConfig Config;
     
-    private int currWave = 0;
-
 
     public Player Player => _player;
     public List<Enemie> Enemies => _enemies;

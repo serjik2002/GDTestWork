@@ -2,23 +2,23 @@
 
 public class WalkState : IState
 {
-    private Animator _animator;
+    private Player _player;
 
-    public WalkState(Animator animator)
+    public WalkState()
     {
-        _animator = animator;
+        _player = GameManager.Instance.Player;
     }
 
     public void Enter()
     {
         //Debug.Log("Enter Walk State");
         //_animator.SetTrigger("Walk");
-        _animator.SetFloat("Speed", GameManager.Instance.Player.Speed);
+        _player.Animator.SetFloat("Speed", GameManager.Instance.Player.Speed);
     }
 
     public void Exit()
     {
-        _animator.SetFloat("Speed", 0);
+        _player.Animator.SetFloat("Speed", 0);
     }
 
     public void Update()

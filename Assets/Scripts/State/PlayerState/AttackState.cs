@@ -2,24 +2,24 @@
 
 public class AttackState : IState
 {
-    private Animator _animator;
+    private Player _player;
 
-    public AttackState(Animator animator)
+    public AttackState()
     {
-        _animator = animator;
+        _player = GameManager.Instance.Player;
     }
 
     public void Enter()
     {
        // Debug.Log("Enter Attack state");
-        _animator.SetTrigger("Attack");
+        _player.Animator.SetTrigger("Attack");
         GameManager.Instance.Player.IsWalking = false;
-        GameManager.Instance.Player.Attack();
+        GameManager.Instance.Player.Attack(GameManager.Instance.Player.Damage);
     }
 
     public void Exit()
     {
-        _animator.ResetTrigger("Attack");
+        _player.Animator.ResetTrigger("Attack");
     }
 
     public void Update()

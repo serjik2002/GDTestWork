@@ -16,7 +16,6 @@ public class Enemie : MonoBehaviour
 
     private WaveSpawner _waveSpawner;
     private float _lastAttackTime = 0;
-    private bool isDead = false;
     private bool _isAttacked = false;
     private bool _isWalking = true;
 

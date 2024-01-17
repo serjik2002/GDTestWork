@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
@@ -7,6 +8,7 @@ using UnityEngine.UI;
 
 public class Player : MonoBehaviour
 {
+    [Header("Player Settings")]
     [SerializeField] private float _healthPoint;
     [SerializeField] private float _damage;
     [SerializeField] private float _attackCooldown;
@@ -14,23 +16,28 @@ public class Player : MonoBehaviour
     [SerializeField] private float _attackRange = 2;
     [SerializeField] private float _speed = 3;
     [SerializeField] private float _rotationSpeed = 10;
+    [Space(10)]
+    [Header("Other")]
     [SerializeField] private Button _attackButton;
     [SerializeField] private Button _superAttackButton;
+    [SerializeField] private Animator _animator;
 
 
     private float lastAttackTime = 0;
     private bool isDead = false;
+    private bool _isSuperAttackEnabled = true;
     private float horizontal, vertical;
     private StateMachine _stateMachine = new StateMachine();
 
 
-    public UnityEvent OnPlayerDie;
-
-    public Animator AnimatorController;
 
     public bool IsWalking { get; set; }
     public float Speed => _speed;
+    public float Damage => _damage;
     public StateMachine StateMachine => _stateMachine;
+    public Animator Animator => _animator;
+
+    public UnityEvent OnPlayerDie;
 
     private void Start()
     {
@@ -39,10 +46,11 @@ public class Player : MonoBehaviour
         _stateMachine.Initialize(new IdleState());
         _attackButton.onClick.AddListener(() =>
         {
-            _stateMachine.ChangeState(new AttackState(AnimatorController));
+            _stateMachine.ChangeState(new AttackState());
         });
         _superAttackButton.onClick.AddListener(() =>
         {
+            _stateMachine.ChangeState(new SuperAttackState());
             StartCoroutine(SuperAttackButtonHandle());
         });
     }
@@ -58,7 +66,8 @@ public class Player : MonoBehaviour
         HandleMovement();
 
         _stateMachine.CurrentState.Update();
-
+        bool enemiesNearby = CheckForEnemiesInRadius();
+        _superAttackButton.interactable = enemiesNearby && _isSuperAttackEnabled;
     }
 
     private void HandleMovement()
@@ -66,11 +75,12 @@ public class Player : MonoBehaviour
         horizontal = Input.GetAxis("Horizontal");
         vertical = Input.GetAxis("Vertical");
 
+
         if (horizontal != 0 || vertical != 0)
         {
             if (!IsWalking)
             {
-                _stateMachine.ChangeState(new WalkState(AnimatorController));
+                _stateMachine.ChangeState(new WalkState());
                 IsWalking = true;
             }
         }
@@ -90,7 +100,7 @@ public class Player : MonoBehaviour
         }
     }
 
-    public void Attack()
+    public void Attack(float damage)
     {
         Enemie closestEnemy = FindClosestEnemy();
         Debug.Log(closestEnemy);
@@ -100,27 +110,27 @@ public class Player : MonoBehaviour
             Debug.Log(canAttack);
             if (canAttack)
             {
-                PerformAttack(closestEnemy);
+                PerformAttack(closestEnemy, damage);
             }
         }
         else
         {
-            AnimatorController.SetTrigger("Attack");
+            _animator.SetTrigger("Attack");
         }
     }
 
     public void SuperAttack()
     {
-
+        Attack(_damage * 2);
     }
 
-    private void PerformAttack(Enemie enemy)
+    private void PerformAttack(Enemie enemy , float damage)
     {
         transform.rotation = Quaternion.LookRotation(enemy.transform.position - transform.position);
 
         lastAttackTime = Time.time;
-        enemy.TakeDamage(_damage);
-        AnimatorController.SetTrigger("Attack");
+        enemy.TakeDamage(damage);
+        _animator.SetTrigger("Attack");
     }
 
     private Enemie FindClosestEnemy()
@@ -166,7 +176,7 @@ public class Player : MonoBehaviour
     private void Die()
     {
         isDead = true;
-        AnimatorController.SetTrigger("Die");
+        _animator.SetTrigger("Die");
     }
 
     public void Move()
@@ -195,8 +205,25 @@ public class Player : MonoBehaviour
 
     private IEnumerator SuperAttackButtonHandle()
     {
-        _superAttackButton.interactable = false;
+        _superAttackButton.interactable = _isSuperAttackEnabled = false;
         yield return new WaitForSeconds(_superAttackCooldown);
-        _superAttackButton.interactable = true;
+        _superAttackButton.interactable = _isSuperAttackEnabled = true;
+        
+    }
+
+    private bool CheckForEnemiesInRadius()
+    {
+        var enemies = GameManager.Instance.WaveSpawner.SpawnedEnemies;
+
+        foreach (var enemy in enemies)
+        {
+            float distance = Vector3.Distance(transform.position, enemy.transform.position);
+            if (distance <= _attackRange)
+            {
+                return true; // At least one enemy is within the attack range
+            }
+        }
+
+        return false; // No enemies are within the attack range
     }
 }
