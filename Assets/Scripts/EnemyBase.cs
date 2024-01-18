@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class Enemie : MonoBehaviour
+public class EnemyBase : MonoBehaviour
 {
     [SerializeField] private float _healthPoint;
     [SerializeField] private float _damage;
@@ -11,10 +11,11 @@ public class Enemie : MonoBehaviour
     [SerializeField] private float _attackRange = 2;
     [SerializeField] private Animator _animator;
     [SerializeField] private NavMeshAgent _agent;
+    [SerializeField] private float _rewardHpToDie = 2;
 
     private StateMachine _stateMachine = new StateMachine();
 
-    private WaveSpawner _waveSpawner;
+    protected WaveSpawner _waveSpawner;
     private float _lastAttackTime = 0;
     private bool _isAttacked = false;
     private bool _isWalking = true;
@@ -32,6 +33,10 @@ public class Enemie : MonoBehaviour
         _waveSpawner = GameManager.Instance.WaveSpawner;
         _agent = GetComponent<NavMeshAgent>();
         _stateMachine.Initialize(new MoveToPlayerState(this));
+        GameManager.Instance.Player.OnPlayerDie.AddListener(() =>
+        {
+            _stateMachine.ChangeState(new IdleState(_animator));
+        });
     }
 
     private void Update()
@@ -59,7 +64,6 @@ public class Enemie : MonoBehaviour
         }
         _stateMachine.CurrentState.Update();
 
-        Animator.SetFloat("Speed", Agent.speed);
     }
 
     public void TakeDamage(float damage)
@@ -67,14 +71,15 @@ public class Enemie : MonoBehaviour
         _healthPoint -= damage;
     }
 
-    private void Die()
+    protected virtual void Die()
     {
+        GameManager.Instance.Player.AddHealth(_rewardHpToDie);
         _waveSpawner.RemoveEnemyFromWave(this);
         Animator.SetTrigger("Die");
         Destroy(gameObject);
     }
 
-    public void Attack()
+    public virtual void Attack()
     {
         float distance = GetDistanceToPlayer();
         if (distance <= _attackRange)

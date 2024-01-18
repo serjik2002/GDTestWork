@@ -19,6 +19,6 @@ public class WaveUI : MonoBehaviour
 
     private void UpdateText()
     {
-        _waveText.text = _waveTextKey + " " + _waveSpawner.CurrentWave + 1 + "/" + _config.Waves.Length;
+        _waveText.text = _waveTextKey + " " + (_waveSpawner.CurrentWave + 1) + "/" + _config.Waves.Length;
     }
 }

@@ -8,18 +8,20 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] private Player _player;
     [SerializeField] private WaveSpawner _waveSpawner;
-    [SerializeField] private List<Enemie> _enemies = new List<Enemie>();
-    [SerializeField] private GameObject _lose;
-    [SerializeField] private GameObject _win;
-    
-    [SerializeField] private LevelConfig Config;
-    
+    [SerializeField] private GameObject _losePanel;
+    [SerializeField] private GameObject _winPanel;
+     
 
     public Player Player => _player;
-    public List<Enemie> Enemies => _enemies;
     public WaveSpawner WaveSpawner => _waveSpawner;
-    public GameObject Lose => _lose;
-    public GameObject Win => _win;
+    public GameObject Lose => _losePanel;
+    public GameObject Win => _winPanel;
+
+    private void Start()
+    {
+        _player.OnPlayerDie.AddListener(OpenLosePanel);
+        _waveSpawner.OnPlayerWin.AddListener(OpenWinPanel);
+    }
 
     private void Awake()
     {
@@ -34,10 +36,19 @@ public class GameManager : MonoBehaviour
         
     }
 
+    private void OpenLosePanel()
+    {
+        _losePanel.SetActive(true);
+    }
+
+    private void OpenWinPanel()
+    {
+        _winPanel.SetActive(true);
+    }
+
     public void Reset()
     {
         UnityEngine.SceneManagement.SceneManager.LoadScene(0);
-        _enemies.Clear();
     }
     
 

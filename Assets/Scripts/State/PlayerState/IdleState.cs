@@ -2,22 +2,21 @@
 
 public class IdleState : IState
 {
-    private Player _player;
+    private Animator _animator;
 
-    public IdleState()
+    public IdleState(Animator animator)
     {
-        _player = GameManager.Instance.Player;
+        _animator = animator;
     }
 
     public void Enter()
     {
-        //Debug.Log("Enter Idle State");
-        _player.Animator.SetTrigger("Idle");
+        _animator.SetTrigger("Idle");
     }
 
     public void Exit()
     {
-        _player.Animator.ResetTrigger("Idle");
+        _animator.ResetTrigger("Idle");
     }
 
     public void Update()

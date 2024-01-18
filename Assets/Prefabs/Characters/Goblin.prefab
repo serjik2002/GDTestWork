@@ -96,15 +96,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 4570157599844447218}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5c2a8ee85d515c343a70e9b80700c61a, type: 3}
+  m_Script: {fileID: 11500000, guid: 67330deefb412ba468219fe1498abdbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _healthPoint: 10
-  _damage: 0
-  _atackCooldown: 1
-  _attackRange: 4.4
+  _healthPoint: 5
+  _damage: 2
+  _atackCooldown: 2
+  _attackRange: 2
   _animator: {fileID: 7475179364339281051}
-  _agent: {fileID: 0}
+  _agent: {fileID: 8767279960998370427}
+  _rewardHpToDie: 2
 --- !u!195 &8767279960998370427
 NavMeshAgent:
   m_ObjectHideFlags: 0

@@ -3,23 +3,22 @@ using UnityEngine.AI;
 
 public class MoveToPlayerState : IState
 {
-    private Enemie _enemie;
+    private EnemyBase _enemie;
 
-    public MoveToPlayerState(Enemie enemie)
+    public MoveToPlayerState(EnemyBase enemie)
     {
         this._enemie = enemie;
     }
     public void Enter()
     {
-        Debug.Log("Enter Move to player state");
         _enemie.Agent.isStopped = false;
-        _enemie.Animator.SetTrigger("Walk");
+        _enemie.Animator.SetFloat("Speed", _enemie.Agent.speed);
     }
 
     public void Exit()
     {
         _enemie.Agent.isStopped = true;
-        _enemie.Animator.ResetTrigger("Walk");
+        _enemie.Animator.SetFloat("Speed", 0);
         return;
     }
 

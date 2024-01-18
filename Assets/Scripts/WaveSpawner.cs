@@ -8,19 +8,32 @@ public class WaveSpawner : MonoBehaviour
     [SerializeField] private LevelConfig _config;
 
     private int _currentWave;
-    private List<Enemie> _enemies;
-    private List<Enemie> _spawnedEnemies = new List<Enemie>();
+    private List<EnemyBase> _enemies;
+    private List<EnemyBase> _spawnedEnemies = new List<EnemyBase>();
 
-    public List<Enemie> Enemies => _enemies;
-    public List<Enemie> SpawnedEnemies => _spawnedEnemies;
+    public List<EnemyBase> Enemies => _enemies;
+    public List<EnemyBase> SpawnedEnemies => _spawnedEnemies;
     public int CurrentWave => _currentWave;
 
     public UnityEvent OnWaveCompleted;
+    public UnityEvent OnPlayerWin;
 
     private void Start()
     {
         _currentWave = 0;
-        OnWaveCompleted.AddListener(SpawnWave);
+        OnWaveCompleted.AddListener(() => 
+        {
+            if (_currentWave < _config.Waves.Length - 1)
+            {
+                _currentWave++;
+                SpawnWave();
+            }
+            else
+            {
+                OnPlayerWin.Invoke();
+            }
+
+        });
         SpawnWave();    
     }
 
@@ -28,6 +41,10 @@ public class WaveSpawner : MonoBehaviour
     {
         if(SpawnedEnemies.Count == 0)
             OnWaveCompleted.Invoke();
+        if (_currentWave == _config.Waves.Length)
+        {
+            OnPlayerWin.Invoke();
+        }
     }
 
     private void SpawnWave()
@@ -43,7 +60,7 @@ public class WaveSpawner : MonoBehaviour
                 _spawnedEnemies.Add(spawnedEnemy);
             }
         }
-        _currentWave++;
+        
     }
 
     private void GetNewWave()
@@ -51,7 +68,7 @@ public class WaveSpawner : MonoBehaviour
         _enemies = _config.Waves[_currentWave].Enemies;
     }    
 
-    public void RemoveEnemyFromWave(Enemie enemie)
+    public void RemoveEnemyFromWave(EnemyBase enemie)
     {
         _spawnedEnemies.Remove(enemie);
     }

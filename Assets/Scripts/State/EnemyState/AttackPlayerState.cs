@@ -2,15 +2,15 @@
 
 public class AttackPlayerState : IState
 {
-    private Enemie _enemie;
+    private EnemyBase _enemie;
 
-    public AttackPlayerState(Enemie enemie)
+    public AttackPlayerState(EnemyBase enemie)
     {
         this._enemie = enemie;
     }
     public void Enter()
     {
-        Debug.Log("Enter Attack player state");
+        return;
     }
 
     public void Exit()

@@ -10,7 +10,6 @@ public class SuperAttackState : IState
     }
     public void Enter()
     {
-        Debug.Log("Enter SuperAttack state");
         _player.Animator.SetTrigger("SuperAttack");
         GameManager.Instance.Player.IsWalking = false;
         GameManager.Instance.Player.SuperAttack();

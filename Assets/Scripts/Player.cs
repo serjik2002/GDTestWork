@@ -42,12 +42,19 @@ public class Player : MonoBehaviour
     private void Start()
     {
         IsWalking = false;
-        OnPlayerDie.AddListener(Die);
-        _stateMachine.Initialize(new IdleState());
+        
+        _stateMachine.Initialize(new IdleState(_animator));
+        
+        OnPlayerDie.AddListener(() =>
+        {
+            _stateMachine.ChangeState(new DieState());
+        });
+
         _attackButton.onClick.AddListener(() =>
         {
             _stateMachine.ChangeState(new AttackState());
         });
+        
         _superAttackButton.onClick.AddListener(() =>
         {
             _stateMachine.ChangeState(new SuperAttackState());
@@ -57,17 +64,15 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
-        if (isDead)
+        if (!isDead)
         {
-            return;
+            HandleDeath();
+            HandleMovement();
+
+            _stateMachine.CurrentState.Update();
+            bool enemiesNearby = CheckForEnemiesInRadius();
+            _superAttackButton.interactable = enemiesNearby && _isSuperAttackEnabled;
         }
-
-        HandleDeath();
-        HandleMovement();
-
-        _stateMachine.CurrentState.Update();
-        bool enemiesNearby = CheckForEnemiesInRadius();
-        _superAttackButton.interactable = enemiesNearby && _isSuperAttackEnabled;
     }
 
     private void HandleMovement()
@@ -85,9 +90,8 @@ public class Player : MonoBehaviour
             }
         }
         else if (IsWalking)
-        { 
-        
-            _stateMachine.ChangeState(new IdleState());
+        {
+            _stateMachine.ChangeState(new IdleState(_animator)); ;
             IsWalking = false;
         }
     }
@@ -102,21 +106,19 @@ public class Player : MonoBehaviour
 
     public void Attack(float damage)
     {
-        Enemie closestEnemy = FindClosestEnemy();
-        Debug.Log(closestEnemy);
-        if (closestEnemy != null)
+        if (!isDead)
         {
-            bool canAttack = CanAttack(closestEnemy);
-            Debug.Log(canAttack);
-            if (canAttack)
+            EnemyBase closestEnemy = FindClosestEnemy();
+            if (closestEnemy != null)
             {
-                PerformAttack(closestEnemy, damage);
+                bool canAttack = CanAttack(closestEnemy);
+                if (canAttack)
+                {
+                    PerformAttack(closestEnemy, damage);
+                }
             }
         }
-        else
-        {
-            _animator.SetTrigger("Attack");
-        }
+        
     }
 
     public void SuperAttack()
@@ -124,20 +126,30 @@ public class Player : MonoBehaviour
         Attack(_damage * 2);
     }
 
-    private void PerformAttack(Enemie enemy , float damage)
+    private void PerformAttack(EnemyBase enemy , float damage)
     {
-        transform.rotation = Quaternion.LookRotation(enemy.transform.position - transform.position);
+        RotateToEnemy(enemy);
 
         lastAttackTime = Time.time;
         enemy.TakeDamage(damage);
-        _animator.SetTrigger("Attack");
     }
 
-    private Enemie FindClosestEnemy()
+    private void RotateToEnemy(EnemyBase enemy)
+    {
+        Vector3 direction = enemy.transform.position - transform.position;
+        Quaternion rotation = Quaternion.LookRotation(direction);
+        Vector3 eulerAngles = rotation.eulerAngles;
+        transform.eulerAngles = new Vector3(0f, eulerAngles.y, 0f);
+    }
+
+    private EnemyBase FindClosestEnemy()
     {
         var enemies = GameManager.Instance.WaveSpawner.SpawnedEnemies;
-        Debug.Log(enemies.Count);
-        Enemie closestEnemie = enemies[0];
+        if (enemies.Count == 0)
+        {
+            return null;
+        }
+        EnemyBase closestEnemie = enemies[0];
         float distance = 0, closestDistance = 0;
 
         for (int i = 1; i < enemies.Count; i++)
@@ -152,11 +164,10 @@ public class Player : MonoBehaviour
             }
 
         }
-        Debug.Log(closestEnemie.transform.position);
         return closestEnemie;
     }
 
-    private bool CanAttack(Enemie enemy)
+    private bool CanAttack(EnemyBase enemy)
     {
         if (Time.time - lastAttackTime > _attackCooldown)
         {
@@ -173,10 +184,12 @@ public class Player : MonoBehaviour
         _healthPoint -= damage;
     }
 
-    private void Die()
+    public void Die()
     {
-        isDead = true;
         _animator.SetTrigger("Die");
+        isDead = true;
+        _attackButton.interactable = false;
+        _isSuperAttackEnabled = false;
     }
 
     public void Move()
@@ -195,6 +208,11 @@ public class Player : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, toRotation, _rotationSpeed * Time.deltaTime);
 
         }
+    }
+
+    public void AddHealth(float healthPoint)
+    {
+        _healthPoint += healthPoint;
     }
 
     private void OnDrawGizmos()
@@ -220,10 +238,9 @@ public class Player : MonoBehaviour
             float distance = Vector3.Distance(transform.position, enemy.transform.position);
             if (distance <= _attackRange)
             {
-                return true; // At least one enemy is within the attack range
+                return true; 
             }
         }
-
-        return false; // No enemies are within the attack range
+        return false; 
     }
 }
